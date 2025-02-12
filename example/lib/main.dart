@@ -3,16 +3,10 @@
 // found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:ui';
 
 import 'package:camera_platform_interface/camera_platform_interface.dart';
-import 'package:camera_windows/camera_windows.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_barcode_sdk/dynamsoft_barcode.dart';
-import 'package:flutter_barcode_sdk/flutter_barcode_sdk.dart';
-import 'dart:ui' as ui;
-import 'dart:isolate';
 
 void main() {
   runApp(const MyApp());
@@ -35,15 +29,17 @@ class _MyAppState extends State<MyApp> {
   bool _initialized = false;
   bool _recording = false;
   bool _recordingTimed = false;
-  bool _recordAudio = true;
   bool _previewPaused = false;
   Size? _previewSize;
-  ResolutionPreset _resolutionPreset = ResolutionPreset.veryHigh;
+  MediaSettings _mediaSettings = const MediaSettings(
+    resolutionPreset: ResolutionPreset.low,
+    fps: 15,
+    videoBitrate: 200000,
+    audioBitrate: 32000,
+    enableAudio: true,
+  );
   StreamSubscription<CameraErrorEvent>? _errorStreamSubscription;
   StreamSubscription<CameraClosingEvent>? _cameraClosingStreamSubscription;
-  StreamSubscription<FrameAvailabledEvent>? _frameAvailableStreamSubscription;
-  late FlutterBarcodeSdk _barcodeReader;
-  bool _isScanAvailable = true;
 
   @override
   void initState() {
@@ -59,20 +55,11 @@ class _MyAppState extends State<MyApp> {
     _errorStreamSubscription = null;
     _cameraClosingStreamSubscription?.cancel();
     _cameraClosingStreamSubscription = null;
-    _frameAvailableStreamSubscription?.cancel();
-    _frameAvailableStreamSubscription = null;
     super.dispose();
   }
 
   /// Fetches list of available cameras from camera_windows plugin.
   Future<void> _fetchCameras() async {
-    _barcodeReader = FlutterBarcodeSdk();
-    // Get 30-day FREEE trial license from https://www.dynamsoft.com/customer/license/trialLicense?product=dbr
-    await _barcodeReader.setLicense(
-        'DLS2eyJoYW5kc2hha2VDb2RlIjoiMjAwMDAxLTE2NDk4Mjk3OTI2MzUiLCJvcmdhbml6YXRpb25JRCI6IjIwMDAwMSIsInNlc3Npb25QYXNzd29yZCI6IndTcGR6Vm05WDJrcEQ5YUoifQ==');
-    await _barcodeReader.init();
-    await _barcodeReader.setBarcodeFormats(BarcodeFormat.ALL);
-
     String cameraInfo;
     List<CameraDescription> cameras = <CameraDescription>[];
 
@@ -111,27 +98,20 @@ class _MyAppState extends State<MyApp> {
       final int cameraIndex = _cameraIndex % _cameras.length;
       final CameraDescription camera = _cameras[cameraIndex];
 
-      cameraId = await CameraPlatform.instance.createCamera(
+      cameraId = await CameraPlatform.instance.createCameraWithSettings(
         camera,
-        _resolutionPreset,
-        enableAudio: _recordAudio,
+        _mediaSettings,
       );
 
-      _errorStreamSubscription?.cancel();
+      unawaited(_errorStreamSubscription?.cancel());
       _errorStreamSubscription = CameraPlatform.instance
           .onCameraError(cameraId)
           .listen(_onCameraError);
 
-      _cameraClosingStreamSubscription?.cancel();
+      unawaited(_cameraClosingStreamSubscription?.cancel());
       _cameraClosingStreamSubscription = CameraPlatform.instance
           .onCameraClosing(cameraId)
           .listen(_onCameraClosing);
-
-      _frameAvailableStreamSubscription?.cancel();
-      _frameAvailableStreamSubscription =
-          (CameraPlatform.instance as CameraWindows)
-              .onFrameAvailable(cameraId)
-              .listen(_onFrameAvailable);
 
       final Future<CameraInitializedEvent> initialized =
           CameraPlatform.instance.onCameraInitialized(cameraId).first;
@@ -217,7 +197,7 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _recordTimed(int seconds) async {
     if (_initialized && _cameraId > 0 && !_recordingTimed) {
-      CameraPlatform.instance
+      unawaited(CameraPlatform.instance
           .onVideoRecordedEvent(_cameraId)
           .first
           .then((VideoRecordedEvent event) async {
@@ -228,7 +208,7 @@ class _MyAppState extends State<MyApp> {
 
           _showInSnackBar('Video captured to: ${event.file.path}');
         }
-      });
+      }));
 
       await CameraPlatform.instance.startVideoRecording(
         _cameraId,
@@ -300,7 +280,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onResolutionChange(ResolutionPreset newValue) async {
     setState(() {
-      _resolutionPreset = newValue;
+      _mediaSettings = MediaSettings(
+        resolutionPreset: newValue,
+        fps: _mediaSettings.fps,
+        videoBitrate: _mediaSettings.videoBitrate,
+        audioBitrate: _mediaSettings.audioBitrate,
+        enableAudio: _mediaSettings.enableAudio,
+      );
     });
     if (_initialized && _cameraId >= 0) {
       // Re-inits camera with new resolution preset.
@@ -311,7 +297,13 @@ class _MyAppState extends State<MyApp> {
 
   Future<void> _onAudioChange(bool recordAudio) async {
     setState(() {
-      _recordAudio = recordAudio;
+      _mediaSettings = MediaSettings(
+        resolutionPreset: _mediaSettings.resolutionPreset,
+        fps: _mediaSettings.fps,
+        videoBitrate: _mediaSettings.videoBitrate,
+        audioBitrate: _mediaSettings.audioBitrate,
+        enableAudio: recordAudio,
+      );
     });
     if (_initialized && _cameraId >= 0) {
       // Re-inits camera with new record audio setting.
@@ -334,51 +326,6 @@ class _MyAppState extends State<MyApp> {
   void _onCameraClosing(CameraClosingEvent event) {
     if (mounted) {
       _showInSnackBar('Camera is closing');
-    }
-  }
-
-  void _onFrameAvailable(FrameAvailabledEvent event) {
-    if (mounted) {
-      Map<String, dynamic> map = event.toJson();
-      final Uint8List? data = map['bytes'] as Uint8List?;
-      if (data != null) {
-        if (!_isScanAvailable) {
-          return;
-        }
-
-        _isScanAvailable = false;
-        // Save image to tmp folder for debug purpose.
-        // decodeImageFromPixels(
-        //     data,
-        //     _previewSize!.width.toInt(),
-        //     _previewSize!.height.toInt(),
-        //     PixelFormat.rgba8888, (ui.Image img) async {
-        //   ByteData? data = await img.toByteData(format: ui.ImageByteFormat.png);
-        //   if (data != null) {
-        //     final XFile imageFile = XFile.fromData(data.buffer.asUint8List(),
-        //         mimeType: 'image/png');
-        //     final DateTime now = DateTime.now();
-        //     imageFile.saveTo('tmp/${now.millisecondsSinceEpoch}.png');
-        //   }
-        //   _isScanAvailable = true;
-        // });
-        _barcodeReader
-            .decodeImageBuffer(
-                data,
-                _previewSize!.width.toInt(),
-                _previewSize!.height.toInt(),
-                _previewSize!.width.toInt() * 4,
-                ImagePixelFormat.IPF_ARGB_8888.index)
-            .then((results) {
-          if (results != null && results.length > 0) {
-            print('Scan result: ${results[0].text}');
-          }
-
-          _isScanAvailable = true;
-        }).catchError((error) {
-          _isScanAvailable = true;
-        });
-      }
     }
   }
 
@@ -428,7 +375,7 @@ class _MyAppState extends State<MyApp> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
                   DropdownButton<ResolutionPreset>(
-                    value: _resolutionPreset,
+                    value: _mediaSettings.resolutionPreset,
                     onChanged: (ResolutionPreset? value) {
                       if (value != null) {
                         _onResolutionChange(value);
@@ -439,7 +386,7 @@ class _MyAppState extends State<MyApp> {
                   const SizedBox(width: 20),
                   const Text('Audio:'),
                   Switch(
-                      value: _recordAudio,
+                      value: _mediaSettings.enableAudio,
                       onChanged: (bool state) => _onAudioChange(state)),
                   const SizedBox(width: 20),
                   ElevatedButton(

@@ -4,7 +4,6 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   camera_windows
-  flutter_barcode_sdk
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

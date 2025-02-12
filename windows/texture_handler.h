@@ -11,8 +11,6 @@
 #include <mutex>
 #include <string>
 
-#include "capture_controller_listener.h"
-
 namespace camera_windows {
 
 // Describes flutter desktop pixelbuffers pixel data order.
@@ -58,11 +56,6 @@ class TextureHandler {
   // Sets software mirror state.
   void SetMirrorPreviewState(bool mirror) { mirror_preview_ = mirror; }
 
-  void SetCaptureControllerListener(
-      CaptureControllerListener* capture_controller_listener) {
-    capture_controller_listener_ = capture_controller_listener;
-  }
-
  private:
   // Informs flutter texture registrar of updated texture.
   void OnBufferUpdated();
@@ -91,8 +84,6 @@ class TextureHandler {
   flutter::TextureRegistrar* texture_registrar_ = nullptr;
 
   std::mutex buffer_mutex_;
-
-  CaptureControllerListener* capture_controller_listener_;
 };
 
 }  // namespace camera_windows

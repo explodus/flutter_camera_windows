@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.14)
 set(PROJECT_NAME "camera_windows")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
+cmake_policy(VERSION 3.14...3.24)
+
 # This value is used when generating builds using this plugin, so it must
 # not be changed
 set(PLUGIN_NAME "${PROJECT_NAME}_plugin")
@@ -20,6 +22,8 @@ list(APPEND PLUGIN_SOURCES
   "string_utils.cpp"
   "capture_device_info.h"
   "capture_device_info.cpp"
+  "messages.g.h"
+  "messages.g.cpp"
   "preview_handler.h"
   "preview_handler.cpp"
   "record_handler.h"
@@ -29,6 +33,9 @@ list(APPEND PLUGIN_SOURCES
   "texture_handler.h"
   "texture_handler.cpp"
   "com_heap_ptr.h"
+  "task_runner.h"
+  "task_runner_window.h"
+  "task_runner_window.cpp"
 )
 
 add_library(${PLUGIN_NAME} SHARED
@@ -80,6 +87,7 @@ add_executable(${TEST_RUNNER}
   test/camera_plugin_test.cpp
   test/camera_test.cpp
   test/capture_controller_test.cpp
+  test/task_runner_window_test.cpp
   ${PLUGIN_SOURCES}
 )
 apply_standard_settings(${TEST_RUNNER})
