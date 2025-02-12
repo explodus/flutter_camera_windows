@@ -16,8 +16,7 @@ import 'src/type_conversion.dart';
 /// An implementation of [CameraPlatform] for Windows.
 class CameraWindows extends CameraPlatform {
   /// Creates a new Windows [CameraPlatform] implementation instance.
-  CameraWindows({@visibleForTesting CameraApi? api})
-      : _hostApi = api ?? CameraApi();
+  CameraWindows({@visibleForTesting CameraApi? api}) : _hostApi = api ?? CameraApi();
 
   /// Registers the Windows implementation of CameraPlatform.
   static void registerWith() {
@@ -30,8 +29,7 @@ class CameraWindows extends CameraPlatform {
   /// The per-camera handlers for messages that should be rebroadcast to
   /// clients as [CameraEvent]s.
   @visibleForTesting
-  final Map<int, HostCameraMessageHandler> hostCameraHandlers =
-      <int, HostCameraMessageHandler>{};
+  final Map<int, HostCameraMessageHandler> hostCameraHandlers = <int, HostCameraMessageHandler>{};
 
   // The stream to receive frames from the native code.
   StreamSubscription<dynamic>? _platformImageStreamSubscription;
@@ -46,13 +44,11 @@ class CameraWindows extends CameraPlatform {
   /// This is only exposed for test purposes. It shouldn't be used by clients of
   /// the plugin as it may break or change at any time.
   @visibleForTesting
-  final StreamController<CameraEvent> cameraEventStreamController =
-      StreamController<CameraEvent>.broadcast();
+  final StreamController<CameraEvent> cameraEventStreamController = StreamController<CameraEvent>.broadcast();
 
   /// Returns a stream of camera events for the given [cameraId].
   Stream<CameraEvent> _cameraEvents(int cameraId) =>
-      cameraEventStreamController.stream
-          .where((CameraEvent event) => event.cameraId == cameraId);
+      cameraEventStreamController.stream.where((CameraEvent event) => event.cameraId == cameraId);
 
   @override
   Future<List<CameraDescription>> availableCameras() async {
@@ -96,8 +92,7 @@ class CameraWindows extends CameraPlatform {
   ) async {
     try {
       // If resolutionPreset is not specified, plugin selects the highest resolution possible.
-      return await _hostApi.create(
-          cameraDescription.name, _pigeonMediaSettings(mediaSettings));
+      return await _hostApi.create(cameraDescription.name, _pigeonMediaSettings(mediaSettings));
     } on PlatformException catch (e) {
       throw CameraException(e.code, e.message);
     }
@@ -108,8 +103,7 @@ class CameraWindows extends CameraPlatform {
     int cameraId, {
     ImageFormatGroup imageFormatGroup = ImageFormatGroup.unknown,
   }) async {
-    hostCameraHandlers.putIfAbsent(cameraId,
-        () => HostCameraMessageHandler(cameraId, cameraEventStreamController));
+    hostCameraHandlers.putIfAbsent(cameraId, () => HostCameraMessageHandler(cameraId, cameraEventStreamController));
 
     final PlatformSize reply;
     try {
@@ -156,6 +150,10 @@ class CameraWindows extends CameraPlatform {
   @override
   Stream<CameraClosingEvent> onCameraClosing(int cameraId) {
     return _cameraEvents(cameraId).whereType<CameraClosingEvent>();
+  }
+
+  Stream<FrameAvailabledEvent> onFrameAvailable(int cameraId) {
+    return _cameraEvents(cameraId).whereType<FrameAvailabledEvent>();
   }
 
   @override
@@ -205,8 +203,7 @@ class CameraWindows extends CameraPlatform {
   }
 
   @override
-  Future<void> startVideoRecording(int cameraId,
-      {Duration? maxVideoDuration}) async {
+  Future<void> startVideoRecording(int cameraId, {Duration? maxVideoDuration}) async {
     // Ignore maxVideoDuration, as it is unimplemented and deprecated.
     return startVideoCapturing(VideoCaptureOptions(cameraId));
   }
@@ -214,8 +211,7 @@ class CameraWindows extends CameraPlatform {
   @override
   Future<void> startVideoCapturing(VideoCaptureOptions options) async {
     if (options.streamCallback != null || options.streamOptions != null) {
-      throw UnimplementedError(
-          'Streaming is not currently supported on Windows');
+      throw UnimplementedError('Streaming is not currently supported on Windows');
     }
 
     // Currently none of `options` is supported on Windows, so it's not passed.
@@ -231,27 +227,22 @@ class CameraWindows extends CameraPlatform {
 
   @override
   Future<void> pauseVideoRecording(int cameraId) async {
-    throw UnsupportedError(
-        'pauseVideoRecording() is not supported due to Win32 API limitations.');
+    throw UnsupportedError('pauseVideoRecording() is not supported due to Win32 API limitations.');
   }
 
   @override
   Future<void> resumeVideoRecording(int cameraId) async {
-    throw UnsupportedError(
-        'resumeVideoRecording() is not supported due to Win32 API limitations.');
+    throw UnsupportedError('resumeVideoRecording() is not supported due to Win32 API limitations.');
   }
 
   @override
-  Stream<CameraImageData> onStreamedFrameAvailable(int cameraId,
-      {CameraImageStreamOptions? options}) {
+  Stream<CameraImageData> onStreamedFrameAvailable(int cameraId, {CameraImageStreamOptions? options}) {
     _installStreamController(
-        onListen: () => _onFrameStreamListen(cameraId),
-        onCancel: () => _onFrameStreamCancel(cameraId));
+        onListen: () => _onFrameStreamListen(cameraId), onCancel: () => _onFrameStreamCancel(cameraId));
     return _frameStreamController!.stream;
   }
 
-  StreamController<CameraImageData> _installStreamController(
-      {void Function()? onListen, void Function()? onCancel}) {
+  StreamController<CameraImageData> _installStreamController({void Function()? onListen, void Function()? onCancel}) {
     _frameStreamController = StreamController<CameraImageData>(
       onListen: onListen ?? () {},
       onPause: _onFrameStreamPauseResume,
@@ -271,12 +262,9 @@ class CameraWindows extends CameraPlatform {
   }
 
   void _startStreamListener() {
-    const EventChannel cameraEventChannel =
-        EventChannel('plugins.flutter.io/camera_android/imageStream');
-    _platformImageStreamSubscription =
-        cameraEventChannel.receiveBroadcastStream().listen((dynamic imageData) {
-      _frameStreamController!
-          .add(cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>));
+    const EventChannel cameraEventChannel = EventChannel('plugins.flutter.io/camera_android/imageStream');
+    _platformImageStreamSubscription = cameraEventChannel.receiveBroadcastStream().listen((dynamic imageData) {
+      _frameStreamController!.add(cameraImageFromPlatformData(imageData as Map<dynamic, dynamic>));
     });
   }
 
@@ -288,8 +276,7 @@ class CameraWindows extends CameraPlatform {
   }
 
   void _onFrameStreamPauseResume() {
-    throw CameraException('InvalidCall',
-        'Pause and resume are not supported for onStreamedFrameAvailable');
+    throw CameraException('InvalidCall', 'Pause and resume are not supported for onStreamedFrameAvailable');
   }
 
   @override
@@ -309,8 +296,7 @@ class CameraWindows extends CameraPlatform {
     assert(point == null || point.x >= 0 && point.x <= 1);
     assert(point == null || point.y >= 0 && point.y <= 1);
 
-    throw UnsupportedError(
-        'setExposurePoint() is not supported due to Win32 API limitations.');
+    throw UnsupportedError('setExposurePoint() is not supported due to Win32 API limitations.');
   }
 
   @override
@@ -351,8 +337,7 @@ class CameraWindows extends CameraPlatform {
     assert(point == null || point.x >= 0 && point.x <= 1);
     assert(point == null || point.y >= 0 && point.y <= 1);
 
-    throw UnsupportedError(
-        'setFocusPoint() is not supported due to Win32 API limitations.');
+    throw UnsupportedError('setFocusPoint() is not supported due to Win32 API limitations.');
   }
 
   @override
@@ -402,8 +387,7 @@ class CameraWindows extends CameraPlatform {
   }
 
   /// Returns a [ResolutionPreset]'s Pigeon representation.
-  PlatformResolutionPreset _pigeonResolutionPreset(
-      ResolutionPreset? resolutionPreset) {
+  PlatformResolutionPreset _pigeonResolutionPreset(ResolutionPreset? resolutionPreset) {
     if (resolutionPreset == null) {
       // Provide a default if one isn't provided, since the native side needs
       // to set something.
@@ -430,6 +414,42 @@ class CameraWindows extends CameraPlatform {
     // switch as needing an update.
     // ignore: dead_code
     return PlatformResolutionPreset.max;
+  }
+
+  /// Converts messages received from the native platform into camera events.
+  ///
+  /// This is only exposed for test purposes. It shouldn't be used by clients
+  /// of the plugin as it may break or change at any time.
+  @visibleForTesting
+  Future<dynamic> handleCameraMethodCall(MethodCall call, int cameraId) async {
+    switch (call.method) {
+      case 'camera_closing':
+        cameraEventStreamController.add(CameraClosingEvent(cameraId));
+        break;
+      case 'video_recorded':
+        final Map<String, Object?> arguments = (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+        final int? maxDuration = arguments['maxVideoDuration'] as int?;
+        // This is called if maxVideoDuration was given on record start.
+        cameraEventStreamController.add(
+          VideoRecordedEvent(
+            cameraId,
+            XFile(arguments['path']! as String),
+            maxDuration != null ? Duration(milliseconds: maxDuration) : null,
+          ),
+        );
+        break;
+      case 'error':
+        final Map<String, Object?> arguments = (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+        cameraEventStreamController.add(CameraErrorEvent(cameraId, arguments['description']! as String));
+        break;
+      case 'frame_available':
+        final Map<String, Object?> arguments = (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
+        Uint8List bytes = arguments['bytes']! as Uint8List;
+        cameraEventStreamController.add(FrameAvailabledEvent(cameraId, bytes));
+        break;
+      default:
+        throw UnimplementedError();
+    }
   }
 }
 
@@ -463,4 +483,24 @@ class HostCameraMessageHandler implements CameraEventApi {
   void cameraClosing() {
     streamController.add(CameraClosingEvent(cameraId));
   }
+}
+
+class FrameAvailabledEvent extends CameraEvent {
+  const FrameAvailabledEvent(int cameraId, this.bytes) : super(cameraId);
+
+  FrameAvailabledEvent.fromJson(Map<String, dynamic> json)
+      : bytes = json['bytes'] as Uint8List,
+        super(json['cameraId'] as int);
+
+  final Uint8List bytes;
+
+  Map<String, dynamic> toJson() => <String, Object?>{'cameraId': cameraId, 'bytes': bytes};
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      super == other && other is FrameAvailabledEvent && runtimeType == other.runtimeType && bytes == other.bytes;
+
+  @override
+  int get hashCode => Object.hash(super.hashCode, bytes);
 }
