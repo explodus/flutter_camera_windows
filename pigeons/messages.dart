@@ -87,6 +87,9 @@ abstract class CameraApi {
 
 @FlutterApi()
 abstract class CameraEventApi {
+  /// Called when the camera instance is getting a new frame.
+  void frameAvailabledEvent(int cameraId, Uint8List imageBytes);
+
   /// Called when the camera instance is closing on the native side.
   void cameraClosing();
 

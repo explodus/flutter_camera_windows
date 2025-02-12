@@ -173,7 +173,10 @@ class MockCamera : public Camera {
               (CameraResult result, const std::string& error), (override));
 
   MOCK_METHOD(void, OnCaptureError,
-              (CameraResult result, const std::string& error), (override));
+    (CameraResult result, const std::string& error), (override));
+
+  MOCK_METHOD(void, OnFrame,
+    (std::vector<uint8_t> data, uint32_t data_length), (override));
 
   MOCK_METHOD(bool, HasDeviceId, (std::string & device_id), (const override));
   MOCK_METHOD(bool, HasCameraId, (int64_t camera_id), (const override));

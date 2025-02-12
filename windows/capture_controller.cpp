@@ -35,7 +35,7 @@ CameraResult GetCameraResult(HRESULT hr) {
 }
 
 CaptureControllerImpl::CaptureControllerImpl(
-    CaptureControllerListener* listener)
+    CaptureControllerListener *listener)
     : capture_controller_listener_(listener),
       media_settings_(
           PlatformMediaSettings(PlatformResolutionPreset::kMax, true)),
@@ -48,7 +48,7 @@ CaptureControllerImpl::~CaptureControllerImpl() {
 
 // static
 bool CaptureControllerImpl::EnumerateVideoCaptureDeviceSources(
-    IMFActivate*** devices, UINT32* count) {
+    IMFActivate ***devices, UINT32 *count) {
   ComPtr<IMFAttributes> attributes;
 
   HRESULT hr = MFCreateAttributes(&attributes, 1);
@@ -72,7 +72,7 @@ bool CaptureControllerImpl::EnumerateVideoCaptureDeviceSources(
 
 HRESULT CaptureControllerImpl::CreateDefaultAudioCaptureSource() {
   audio_source_ = nullptr;
-  ComHeapPtr<IMFActivate*> devices;
+  ComHeapPtr<IMFActivate *> devices;
   UINT32 count = 0;
 
   ComPtr<IMFAttributes> attributes;
@@ -123,7 +123,7 @@ HRESULT CaptureControllerImpl::CreateDefaultAudioCaptureSource() {
 }
 
 HRESULT CaptureControllerImpl::CreateVideoCaptureSourceForDevice(
-    const std::string& video_device_id) {
+    const std::string &video_device_id) {
   video_source_ = nullptr;
 
   ComPtr<IMFAttributes> video_capture_source_attributes;
@@ -302,8 +302,8 @@ void CaptureControllerImpl::ResetCaptureController() {
 }
 
 bool CaptureControllerImpl::InitCaptureDevice(
-    flutter::TextureRegistrar* texture_registrar, const std::string& device_id,
-    const PlatformMediaSettings& media_settings,
+    flutter::TextureRegistrar *texture_registrar, const std::string &device_id,
+    const PlatformMediaSettings &media_settings,
     std::shared_ptr<TaskRunner> task_runner) {
   assert(capture_controller_listener_);
 
@@ -348,7 +348,7 @@ bool CaptureControllerImpl::InitCaptureDevice(
   return true;
 }
 
-void CaptureControllerImpl::TakePicture(const std::string& file_path) {
+void CaptureControllerImpl::TakePicture(const std::string &file_path) {
   assert(capture_engine_callback_handler_);
   assert(capture_engine_);
 
@@ -386,28 +386,28 @@ void CaptureControllerImpl::TakePicture(const std::string& file_path) {
 
 uint32_t CaptureControllerImpl::GetMaxPreviewHeight() const {
   switch (media_settings_.resolution_preset()) {
-    case PlatformResolutionPreset::kLow:
-      return 240;
-    case PlatformResolutionPreset::kMedium:
-      return 480;
-    case PlatformResolutionPreset::kHigh:
-      return 720;
-    case PlatformResolutionPreset::kVeryHigh:
-      return 1080;
-    case PlatformResolutionPreset::kUltraHigh:
-      return 2160;
-    case PlatformResolutionPreset::kMax:
-    default:
-      // no limit.
-      return 0xffffffff;
+  case PlatformResolutionPreset::kLow:
+    return 240;
+  case PlatformResolutionPreset::kMedium:
+    return 480;
+  case PlatformResolutionPreset::kHigh:
+    return 720;
+  case PlatformResolutionPreset::kVeryHigh:
+    return 1080;
+  case PlatformResolutionPreset::kUltraHigh:
+    return 2160;
+  case PlatformResolutionPreset::kMax:
+  default:
+    // no limit.
+    return 0xffffffff;
   }
 }
 
 // Finds best media type for given source stream index and max height;
-bool FindBestMediaType(DWORD source_stream_index, IMFCaptureSource* source,
-                       IMFMediaType** target_media_type, uint32_t max_height,
-                       uint32_t* target_frame_width,
-                       uint32_t* target_frame_height,
+bool FindBestMediaType(DWORD source_stream_index, IMFCaptureSource *source,
+                       IMFMediaType **target_media_type, uint32_t max_height,
+                       uint32_t *target_frame_width,
+                       uint32_t *target_frame_height,
                        float minimum_accepted_framerate = 15.f) {
   assert(source);
   ComPtr<IMFMediaType> media_type;
@@ -475,8 +475,8 @@ HRESULT CaptureControllerImpl::FindBaseMediaTypes() {
   return FindBaseMediaTypesForSource(source.Get());
 }
 
-HRESULT CaptureControllerImpl::FindBaseMediaTypesForSource(
-    IMFCaptureSource* source) {
+HRESULT
+CaptureControllerImpl::FindBaseMediaTypesForSource(IMFCaptureSource *source) {
   // Find base media type for previewing.
   if (!FindBestMediaType(
           (DWORD)MF_CAPTURE_ENGINE_PREFERRED_SOURCE_STREAM_FOR_VIDEO_PREVIEW,
@@ -497,7 +497,7 @@ HRESULT CaptureControllerImpl::FindBaseMediaTypesForSource(
   return S_OK;
 }
 
-void CaptureControllerImpl::StartRecord(const std::string& file_path) {
+void CaptureControllerImpl::StartRecord(const std::string &file_path) {
   assert(capture_engine_);
 
   if (!IsInitialized()) {
@@ -694,7 +694,7 @@ void CaptureControllerImpl::ResumePreview() {
 // Handles capture engine events.
 // Called via IMFCaptureEngineOnEventCallback implementation.
 // Implements CaptureEngineObserver::OnEvent.
-void CaptureControllerImpl::OnEvent(IMFMediaEvent* event) {
+void CaptureControllerImpl::OnEvent(IMFMediaEvent *event) {
   if (!IsInitialized() &&
       capture_engine_state_ != CaptureEngineState::kInitializing) {
     return;
@@ -743,7 +743,7 @@ void CaptureControllerImpl::OnEvent(IMFMediaEvent* event) {
 
 // Handles Picture event and informs CaptureControllerListener.
 void CaptureControllerImpl::OnPicture(CameraResult result,
-                                      const std::string& error) {
+                                      const std::string &error) {
   if (result == CameraResult::kSuccess && photo_handler_) {
     if (capture_controller_listener_) {
       std::string path = photo_handler_->GetPhotoPath();
@@ -762,7 +762,7 @@ void CaptureControllerImpl::OnPicture(CameraResult result,
 // Handles CaptureEngineInitialized event and informs
 // CaptureControllerListener.
 void CaptureControllerImpl::OnCaptureEngineInitialized(
-    CameraResult result, const std::string& error) {
+    CameraResult result, const std::string &error) {
   if (capture_controller_listener_) {
     if (result != CameraResult::kSuccess) {
       capture_controller_listener_->OnCreateCaptureEngineFailed(
@@ -789,7 +789,7 @@ void CaptureControllerImpl::OnCaptureEngineInitialized(
 
 // Handles CaptureEngineError event and informs CaptureControllerListener.
 void CaptureControllerImpl::OnCaptureEngineError(CameraResult result,
-                                                 const std::string& error) {
+                                                 const std::string &error) {
   if (capture_controller_listener_) {
     capture_controller_listener_->OnCaptureError(result, error);
   }
@@ -802,7 +802,7 @@ void CaptureControllerImpl::OnCaptureEngineError(CameraResult result,
 // This should be called only after first frame has been received or
 // in error cases.
 void CaptureControllerImpl::OnPreviewStarted(CameraResult result,
-                                             const std::string& error) {
+                                             const std::string &error) {
   if (preview_handler_ && result == CameraResult::kSuccess) {
     preview_handler_->OnPreviewStarted();
   } else {
@@ -823,7 +823,7 @@ void CaptureControllerImpl::OnPreviewStarted(CameraResult result,
 
 // Handles PreviewStopped event.
 void CaptureControllerImpl::OnPreviewStopped(CameraResult result,
-                                             const std::string& error) {
+                                             const std::string &error) {
   // Preview handler is destroyed if preview is stopped as it
   // does not have any use anymore.
   preview_handler_ = nullptr;
@@ -831,7 +831,7 @@ void CaptureControllerImpl::OnPreviewStopped(CameraResult result,
 
 // Handles RecordStarted event and informs CaptureControllerListener.
 void CaptureControllerImpl::OnRecordStarted(CameraResult result,
-                                            const std::string& error) {
+                                            const std::string &error) {
   if (result == CameraResult::kSuccess && record_handler_) {
     record_handler_->OnRecordStarted();
     if (capture_controller_listener_) {
@@ -849,7 +849,7 @@ void CaptureControllerImpl::OnRecordStarted(CameraResult result,
 
 // Handles RecordStopped event and informs CaptureControllerListener.
 void CaptureControllerImpl::OnRecordStopped(CameraResult result,
-                                            const std::string& error) {
+                                            const std::string &error) {
   if (capture_controller_listener_ && record_handler_) {
     // Always calls OnStopRecord listener methods
     // to handle separate stop record request for timed records.
@@ -873,7 +873,7 @@ void CaptureControllerImpl::OnRecordStopped(CameraResult result,
 // Updates texture handlers buffer with given data.
 // Called via IMFCaptureEngineOnSampleCallback implementation.
 // Implements CaptureEngineObserver::UpdateBuffer.
-bool CaptureControllerImpl::UpdateBuffer(uint8_t* buffer,
+bool CaptureControllerImpl::UpdateBuffer(uint8_t *buffer,
                                          uint32_t data_length) {
   if (!texture_handler_) {
     return false;
@@ -903,10 +903,16 @@ bool CaptureControllerImpl::UpdateBuffer(uint8_t* buffer,
 
     // Send the encoded value through the image_stream_sink_.
     std::weak_ptr weak_sink = image_stream_sink_;
-    task_runner_->EnqueueTask([weak_sink, encoded_value]() {
+    auto weak_listener = capture_controller_listener_;
+    task_runner_->EnqueueTask([weak_sink, encoded_value, buffer_data, data_length, weak_listener]() {
       std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink =
           weak_sink.lock();
-      if (sink) sink->Success(encoded_value);
+      if (weak_listener) {
+        weak_listener->OnFrame(buffer_data, data_length);
+      }
+
+      if (sink)
+        sink->Success(encoded_value);
     });
   }
   return texture_handler_->UpdateBuffer(buffer, data_length);
@@ -927,4 +933,4 @@ void CaptureControllerImpl::UpdateCaptureTime(uint64_t capture_time_us) {
   }
 }
 
-}  // namespace camera_windows
+} // namespace camera_windows

@@ -31,16 +31,16 @@ enum class PendingResultType {
 // Access is provided to an associated |CaptureController|, which can be used
 // to capture video or photo from the camera.
 class Camera : public CaptureControllerListener {
- public:
-  explicit Camera([[maybe_unused]] const std::string& device_id) {}
+public:
+  explicit Camera([[maybe_unused]] const std::string &device_id) {}
   virtual ~Camera() = default;
 
   // Disallow copy and move.
-  Camera(const Camera&) = delete;
-  Camera& operator=(const Camera&) = delete;
+  Camera(const Camera &) = delete;
+  Camera &operator=(const Camera &) = delete;
 
   // Tests if this camera has the specified device ID.
-  virtual bool HasDeviceId(std::string& device_id) const = 0;
+  virtual bool HasDeviceId(std::string &device_id) const = 0;
 
   // Tests if this camera has the specified camera ID.
   virtual bool HasCameraId(int64_t camera_id) const = 0;
@@ -55,9 +55,9 @@ class Camera : public CaptureControllerListener {
   // Adds a pending result for a string return.
   //
   // Returns an error result if the result has already been added.
-  virtual bool AddPendingIntResult(
-      PendingResultType type,
-      std::function<void(ErrorOr<int64_t> reply)> result) = 0;
+  virtual bool
+  AddPendingIntResult(PendingResultType type,
+                      std::function<void(ErrorOr<int64_t> reply)> result) = 0;
 
   // Adds a pending result for a string return.
   //
@@ -78,14 +78,14 @@ class Camera : public CaptureControllerListener {
 
   // Returns a |CaptureController| that allows capturing video or still photos
   // from this camera.
-  virtual camera_windows::CaptureController* GetCaptureController() = 0;
+  virtual camera_windows::CaptureController *GetCaptureController() = 0;
 
   // Initializes this camera and its associated capture controller.
   //
   // Returns false if initialization fails.
-  virtual bool InitCamera(flutter::TextureRegistrar* texture_registrar,
-                          flutter::BinaryMessenger* messenger,
-                          const PlatformMediaSettings& media_settings,
+  virtual bool InitCamera(flutter::TextureRegistrar *texture_registrar,
+                          flutter::BinaryMessenger *messenger,
+                          const PlatformMediaSettings &media_settings,
                           std::shared_ptr<TaskRunner> task_runner) = 0;
 };
 
@@ -95,40 +95,41 @@ class Camera : public CaptureControllerListener {
 // listening for camera events, processing pending results, and notifying
 // application code of processed events via the method channel.
 class CameraImpl : public Camera {
- public:
-  explicit CameraImpl(const std::string& device_id);
+public:
+  explicit CameraImpl(const std::string &device_id);
   virtual ~CameraImpl();
 
   // Disallow copy and move.
-  CameraImpl(const CameraImpl&) = delete;
-  CameraImpl& operator=(const CameraImpl&) = delete;
+  CameraImpl(const CameraImpl &) = delete;
+  CameraImpl &operator=(const CameraImpl &) = delete;
 
   // CaptureControllerListener
   void OnCreateCaptureEngineSucceeded(int64_t texture_id) override;
   void OnCreateCaptureEngineFailed(CameraResult result,
-                                   const std::string& error) override;
+                                   const std::string &error) override;
   void OnStartPreviewSucceeded(int32_t width, int32_t height) override;
   void OnStartPreviewFailed(CameraResult result,
-                            const std::string& error) override;
+                            const std::string &error) override;
   void OnPausePreviewSucceeded() override;
   void OnPausePreviewFailed(CameraResult result,
-                            const std::string& error) override;
+                            const std::string &error) override;
   void OnResumePreviewSucceeded() override;
   void OnResumePreviewFailed(CameraResult result,
-                             const std::string& error) override;
+                             const std::string &error) override;
   void OnStartRecordSucceeded() override;
   void OnStartRecordFailed(CameraResult result,
-                           const std::string& error) override;
-  void OnStopRecordSucceeded(const std::string& file_path) override;
+                           const std::string &error) override;
+  void OnStopRecordSucceeded(const std::string &file_path) override;
   void OnStopRecordFailed(CameraResult result,
-                          const std::string& error) override;
-  void OnTakePictureSucceeded(const std::string& file_path) override;
+                          const std::string &error) override;
+  void OnTakePictureSucceeded(const std::string &file_path) override;
   void OnTakePictureFailed(CameraResult result,
-                           const std::string& error) override;
-  void OnCaptureError(CameraResult result, const std::string& error) override;
+                           const std::string &error) override;
+  void OnCaptureError(CameraResult result, const std::string &error) override;
+  void OnFrame(std::vector<uint8_t> data, uint32_t data_length) override;
 
   // Camera
-  bool HasDeviceId(std::string& device_id) const override {
+  bool HasDeviceId(std::string &device_id) const override {
     return device_id_ == device_id;
   }
   bool HasCameraId(int64_t camera_id) const override {
@@ -147,12 +148,12 @@ class CameraImpl : public Camera {
       PendingResultType type,
       std::function<void(ErrorOr<PlatformSize> reply)> result) override;
   bool HasPendingResultByType(PendingResultType type) const override;
-  camera_windows::CaptureController* GetCaptureController() override {
+  camera_windows::CaptureController *GetCaptureController() override {
     return capture_controller_.get();
   }
-  bool InitCamera(flutter::TextureRegistrar* texture_registrar,
-                  flutter::BinaryMessenger* messenger,
-                  const PlatformMediaSettings& media_settings,
+  bool InitCamera(flutter::TextureRegistrar *texture_registrar,
+                  flutter::BinaryMessenger *messenger,
+                  const PlatformMediaSettings &media_settings,
                   std::shared_ptr<TaskRunner> task_runner) override;
 
   // Initializes the camera and its associated capture controller.
@@ -163,12 +164,12 @@ class CameraImpl : public Camera {
   // Returns false if initialization fails.
   bool InitCamera(
       std::unique_ptr<CaptureControllerFactory> capture_controller_factory,
-      flutter::TextureRegistrar* texture_registrar,
-      flutter::BinaryMessenger* messenger,
-      const PlatformMediaSettings& media_settings,
+      flutter::TextureRegistrar *texture_registrar,
+      flutter::BinaryMessenger *messenger,
+      const PlatformMediaSettings &media_settings,
       std::shared_ptr<TaskRunner> task_runner);
 
- private:
+private:
   // A generic type for any pending asyncronous result.
   using AsyncResult =
       std::variant<std::function<void(std::optional<FlutterError> reply)>,
@@ -181,15 +182,15 @@ class CameraImpl : public Camera {
   //
   // error_code: A string error code describing the error.
   // description: A user-readable error message (optional).
-  void SendErrorForPendingResults(const std::string& error_code,
-                                  const std::string& description);
+  void SendErrorForPendingResults(const std::string &error_code,
+                                  const std::string &description);
 
   // Called when camera is disposed.
   // Sends camera closing message to the cameras method channel.
   void OnCameraClosing();
 
   // Returns the FlutterApi instance used to communicate camera events.
-  CameraEventApi* GetEventApi();
+  CameraEventApi *GetEventApi();
 
   // Finds pending void result by type.
   //
@@ -200,20 +201,20 @@ class CameraImpl : public Camera {
   // Finds pending int result by type.
   //
   // Returns an empty function if type is not present.
-  std::function<void(ErrorOr<int64_t> reply)> GetPendingIntResultByType(
-      PendingResultType type);
+  std::function<void(ErrorOr<int64_t> reply)>
+  GetPendingIntResultByType(PendingResultType type);
 
   // Finds pending string result by type.
   //
   // Returns an empty function if type is not present.
-  std::function<void(ErrorOr<std::string> reply)> GetPendingStringResultByType(
-      PendingResultType type);
+  std::function<void(ErrorOr<std::string> reply)>
+  GetPendingStringResultByType(PendingResultType type);
 
   // Finds pending size result by type.
   //
   // Returns an empty function if type is not present.
-  std::function<void(ErrorOr<PlatformSize> reply)> GetPendingSizeResultByType(
-      PendingResultType type);
+  std::function<void(ErrorOr<PlatformSize> reply)>
+  GetPendingSizeResultByType(PendingResultType type);
 
   // Finds pending result by type.
   //
@@ -232,7 +233,7 @@ class CameraImpl : public Camera {
   std::map<PendingResultType, AsyncResult> pending_results_;
   std::unique_ptr<CaptureController> capture_controller_;
   std::unique_ptr<CameraEventApi> event_api_;
-  flutter::BinaryMessenger* messenger_ = nullptr;
+  flutter::BinaryMessenger *messenger_ = nullptr;
   std::shared_ptr<TaskRunner> task_runner_;
   int64_t camera_id_ = -1;
   std::string device_id_;
@@ -240,34 +241,34 @@ class CameraImpl : public Camera {
 
 // Factory class for creating |Camera| instances from a specified device ID.
 class CameraFactory {
- public:
+public:
   CameraFactory() {}
   virtual ~CameraFactory() = default;
 
   // Disallow copy and move.
-  CameraFactory(const CameraFactory&) = delete;
-  CameraFactory& operator=(const CameraFactory&) = delete;
+  CameraFactory(const CameraFactory &) = delete;
+  CameraFactory &operator=(const CameraFactory &) = delete;
 
   // Creates camera for given device id.
-  virtual std::unique_ptr<Camera> CreateCamera(
-      const std::string& device_id) = 0;
+  virtual std::unique_ptr<Camera>
+  CreateCamera(const std::string &device_id) = 0;
 };
 
 // Concrete implementation of |CameraFactory|.
 class CameraFactoryImpl : public CameraFactory {
- public:
+public:
   CameraFactoryImpl() {}
   virtual ~CameraFactoryImpl() = default;
 
   // Disallow copy and move.
-  CameraFactoryImpl(const CameraFactoryImpl&) = delete;
-  CameraFactoryImpl& operator=(const CameraFactoryImpl&) = delete;
+  CameraFactoryImpl(const CameraFactoryImpl &) = delete;
+  CameraFactoryImpl &operator=(const CameraFactoryImpl &) = delete;
 
-  std::unique_ptr<Camera> CreateCamera(const std::string& device_id) override {
+  std::unique_ptr<Camera> CreateCamera(const std::string &device_id) override {
     return std::make_unique<CameraImpl>(device_id);
   }
 };
 
-}  // namespace camera_windows
+} // namespace camera_windows
 
-#endif  // PACKAGES_CAMERA_CAMERA_WINDOWS_WINDOWS_CAMERA_H_
+#endif // PACKAGES_CAMERA_CAMERA_WINDOWS_WINDOWS_CAMERA_H_

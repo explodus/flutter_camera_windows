@@ -24,7 +24,7 @@ enum class CameraResult {
 // Interface for classes that receives callbacks on events from the associated
 // |CaptureController|.
 class CaptureControllerListener {
- public:
+public:
   virtual ~CaptureControllerListener() = default;
 
   // Called by CaptureController on successful capture engine initialization.
@@ -37,7 +37,7 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnCreateCaptureEngineFailed(CameraResult result,
-                                           const std::string& error) = 0;
+                                           const std::string &error) = 0;
 
   // Called by CaptureController on successfully started preview.
   //
@@ -50,7 +50,7 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnStartPreviewFailed(CameraResult result,
-                                    const std::string& error) = 0;
+                                    const std::string &error) = 0;
 
   // Called by CaptureController on successfully paused preview.
   virtual void OnPausePreviewSucceeded() = 0;
@@ -60,7 +60,7 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnPausePreviewFailed(CameraResult result,
-                                    const std::string& error) = 0;
+                                    const std::string &error) = 0;
 
   // Called by CaptureController on successfully resumed preview.
   virtual void OnResumePreviewSucceeded() = 0;
@@ -70,7 +70,7 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnResumePreviewFailed(CameraResult result,
-                                     const std::string& error) = 0;
+                                     const std::string &error) = 0;
 
   // Called by CaptureController on successfully started recording.
   virtual void OnStartRecordSucceeded() = 0;
@@ -80,31 +80,31 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnStartRecordFailed(CameraResult result,
-                                   const std::string& error) = 0;
+                                   const std::string &error) = 0;
 
   // Called by CaptureController on successfully stopped recording.
   //
   // file_path: Filesystem path of the recorded video file.
-  virtual void OnStopRecordSucceeded(const std::string& file_path) = 0;
+  virtual void OnStopRecordSucceeded(const std::string &file_path) = 0;
 
   // Called by CaptureController if stopping the recording fails.
   //
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnStopRecordFailed(CameraResult result,
-                                  const std::string& error) = 0;
+                                  const std::string &error) = 0;
 
   // Called by CaptureController on successfully captured picture.
   //
   // file_path: Filesystem path of the captured image.
-  virtual void OnTakePictureSucceeded(const std::string& file_path) = 0;
+  virtual void OnTakePictureSucceeded(const std::string &file_path) = 0;
 
   // Called by CaptureController if taking picture fails.
   //
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnTakePictureFailed(CameraResult result,
-                                   const std::string& error) = 0;
+                                   const std::string &error) = 0;
 
   // Called by CaptureController if capture engine returns error.
   // For example when camera is disconnected while on use.
@@ -112,9 +112,11 @@ class CaptureControllerListener {
   // result: The kind of result.
   // error: A string describing the error.
   virtual void OnCaptureError(CameraResult result,
-                              const std::string& error) = 0;
+                              const std::string &error) = 0;
+
+  virtual void OnFrame(std::vector<uint8_t> data, uint32_t data_length) = 0;
 };
 
-}  // namespace camera_windows
+} // namespace camera_windows
 
-#endif  // PACKAGES_CAMERA_CAMERA_WINDOWS_WINDOWS_CAPTURE_CONTROLLER_LISTENER_H_
+#endif // PACKAGES_CAMERA_CAMERA_WINDOWS_WINDOWS_CAPTURE_CONTROLLER_LISTENER_H_

@@ -324,6 +324,16 @@ void CameraImpl::OnCaptureError(CameraResult result, const std::string& error) {
   SendErrorForPendingResults(error_code, error);
 }
 
+
+void CameraImpl::OnFrame(std::vector<uint8_t> data, uint32_t data_length) {
+  if (messenger_ && camera_id_ >= 0) {
+    GetEventApi()->FrameAvailabledEvent(
+      camera_id_,
+      data,
+        []() {}, [](const FlutterError& error) {});
+  }
+}
+
 void CameraImpl::OnCameraClosing() {
   if (messenger_ && camera_id_ >= 0) {
     // TODO(stuartmorgan): Replace with an event channel, since that's how

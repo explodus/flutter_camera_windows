@@ -483,6 +483,11 @@ class HostCameraMessageHandler implements CameraEventApi {
   void cameraClosing() {
     streamController.add(CameraClosingEvent(cameraId));
   }
+
+  @override
+  void frameAvailabledEvent(int cameraId, Uint8List imageBytes) {
+    streamController.add(FrameAvailabledEvent(cameraId, imageBytes));
+  }
 }
 
 class FrameAvailabledEvent extends CameraEvent {
