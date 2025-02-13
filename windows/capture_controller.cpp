@@ -893,12 +893,12 @@ namespace camera_windows {
 		}
 	}
 
-#ifdef DEBUG
+#ifdef _DEBUG
 #	define LOG(args) {std::stringstream _ss; _ss << "@" << __LINE__ << ": " \
     << args << std::endl; OutputDebugStringA(_ss.str().c_str());}
 #else
 #	define LOG(args)
-#endif // DEBUG
+#endif // _DEBUG
 
 	// Updates texture handlers buffer with given data.
 	// Called via IMFCaptureEngineOnSampleCallback implementation.
@@ -906,10 +906,10 @@ namespace camera_windows {
 	bool CaptureControllerImpl::UpdateBuffer(uint8_t* buffer,
 		uint32_t data_length) {
 		if (!texture_handler_) {
-			LOG("return false;\n");
+			//LOG("return false;\n");
 			return false;
 		}
-		LOG("data_length: " << data_length << "\n");
+		//LOG("data_length: " << data_length << "\n");
 		if (image_stream_sink_) {
 			// Convert the buffer data to a std::vector<uint8_t>.
 			std::vector<uint8_t> buffer_data(buffer, buffer + data_length);
@@ -940,7 +940,11 @@ namespace camera_windows {
 				std::shared_ptr<flutter::EventSink<flutter::EncodableValue>> sink =
 					weak_sink.lock();
 				if (weak_listener) {
-					weak_listener->OnFrame(buffer_data, data_length);
+					try {
+						weak_listener->OnFrame(buffer_data, data_length);
+					}
+					catch (const std::exception& exception) {
+					}
 				}
 
 				if (sink)
@@ -952,7 +956,11 @@ namespace camera_windows {
 			std::vector<uint8_t> buffer_data(buffer, buffer + data_length);
 			task_runner_->EnqueueTask([buffer_data, data_length, weak_listener]() {
 				if (weak_listener) {
-					weak_listener->OnFrame(buffer_data, data_length);
+					try {
+						weak_listener->OnFrame(buffer_data, data_length);
+					}
+					catch (const std::exception& exception) {
+					}
 				}
 				});
 		}
