@@ -943,7 +943,7 @@ namespace camera_windows {
 					try {
 						weak_listener->OnFrame(buffer_data, data_length);
 					}
-					catch (const std::exception& exception) {
+					catch (const std::exception&) {
 					}
 				}
 
@@ -959,7 +959,7 @@ namespace camera_windows {
 					try {
 						weak_listener->OnFrame(buffer_data, data_length);
 					}
-					catch (const std::exception& exception) {
+					catch (const std::exception&) {
 					}
 				}
 				});
